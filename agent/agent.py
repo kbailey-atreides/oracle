@@ -1,7 +1,14 @@
 from smolagents import LiteLLMModel
 from smolagents import CodeAgent
 from tools import *
-import os
+
+from phoenix.otel import register
+from openinference.instrumentation.smolagents import SmolagentsInstrumentor
+
+# telemetry
+register()
+SmolagentsInstrumentor().instrument()
+
 
 # External Models
 # model_id = "o4-mini"
@@ -13,6 +20,7 @@ import os
 # Local Models
 model_id = "ollama_chat/gemma3:27b-it-qat"
 # model_id = "ollama_chat/magistral:24b"
+# model_id = "ollama_chat/devstral:24b"
 # model_id = "ollama_chat/qwen3:8b"
 # model_id = "ollama_chat/hf.co/unsloth/GLM-4-32B-0414-GGUF:Q4_K_M"
 
@@ -27,7 +35,7 @@ else:
         model_id=model_id,
         temperature=0.3,
         top_p=0.9,
-        api_base="http://localhost:11434",
+        api_base="http://192.168.8.116:11434",
     )
 
 agent = CodeAgent(
@@ -47,7 +55,7 @@ agent = CodeAgent(
     # additional_authorized_imports=["pandas", "numpy"],
     max_steps=5,
     # verbosity_level=2,
-    # planning_interval=3,
+    planning_interval=3,
     use_structured_outputs_internally=True,
     
 )
