@@ -26,11 +26,19 @@ model_id = "ollama_chat/gemma3:27b-it-qat"
 
 # 
 if any(substring in model_id for substring in ["o3", "o4"]):
-    # reasoning models limit params 
+    # reasoning openai models
     model = LiteLLMModel(
         model_id=model_id,
     )
+elif any(substring in model_id for substring in ["4.1"]):
+    # non-reasoning openai models 
+    model = LiteLLMModel(
+        model_id=model_id,
+        temperature=0.3,
+        top_p=0.9,
+    )
 else:
+    # local models
     model = LiteLLMModel(
         model_id=model_id,
         temperature=0.3,
