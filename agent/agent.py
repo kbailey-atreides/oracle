@@ -4,22 +4,31 @@ from tools import *
 import os
 
 # External Models
-model_id = "o4-mini"
+# model_id = "o4-mini"
 # model_id = "gpt-4.1"
 # model_id = "o3-mini"
 # model_id = "gpt-4.1-mini"
 # model_id = "gpt-4.1-nano"
 
 # Local Models
-# model_id = "ollama_chat/gemma3:27b-it-qat"
+model_id = "ollama_chat/gemma3:27b-it-qat"
 # model_id = "ollama_chat/magistral:24b"
 # model_id = "ollama_chat/qwen3:8b"
+# model_id = "ollama_chat/hf.co/unsloth/GLM-4-32B-0414-GGUF:Q4_K_M"
 
-model = LiteLLMModel(
-  model_id=model_id,
-#   temperature=0.3,
-#   top_p=0.9,
-)
+# 
+if any(substring in model_id for substring in ["o3", "o4"]):
+    # reasoning models limit params 
+    model = LiteLLMModel(
+        model_id=model_id,
+    )
+else:
+    model = LiteLLMModel(
+        model_id=model_id,
+        temperature=0.3,
+        top_p=0.9,
+        api_base="http://localhost:11434",
+    )
 
 agent = CodeAgent(
     tools=[
@@ -35,7 +44,12 @@ agent = CodeAgent(
         # get_table_history,
     ],
     model=model,
-    additional_authorized_imports=["pandas", "numpy"] 
+    # additional_authorized_imports=["pandas", "numpy"],
+    max_steps=5,
+    # verbosity_level=2,
+    # planning_interval=3,
+    use_structured_outputs_internally=True,
+    
 )
 
 def query_agent(query: str):
@@ -44,6 +58,7 @@ def query_agent(query: str):
 
 if __name__ == "__main__":
     
+    # example queries
     query1 = "does EntityId='2E1EF0B6328770FA94ABED6B63FA273A' exist in prod_catalog.adtech_db.base on Jan 31st 2025 to Feb 1st 2025, for isocode = 'RU' ??"
     query2 = "How many records for EntityId='2E1EF0B6328770FA94ABED6B63FA273A' exist in prod_catalog.adtech_db.base on Jan 31st 2025 to Feb 1st 2025, for isocode = 'RU' ??"
     query3 = """
@@ -53,13 +68,16 @@ if __name__ == "__main__":
     query4 = "what unique values do we have for the 'provider' field in prod_catalog.adtech_db.base table on April 13th 2025 in isocode RU.?"
     query5 = "Explain the data drop in the 3rd week of Jan 2025 for pickwell provider in prod_catalog.adtech_db.base table."
 
+    # run query 
     if len(sys.argv) > 1:
         query = sys.argv[1]
     else:
         query = query1
 
 
+    # turn off thinking for Qwen3 local models
     no_think = "/no_think" if "qwen3" in model_id else ""
+
     prompt = f"""
     {no_think}
 
@@ -100,3 +118,4 @@ if __name__ == "__main__":
     # TODO: add verifier function for the tool 
     # TODO: a bot that can write and read files from disk 
     # TODO: a bot that can write spark sql  (dangerous, but useful)
+    # TODO: move agent persona + rules + env to the system_prompt 
