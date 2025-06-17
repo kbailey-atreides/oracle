@@ -1,4 +1,4 @@
-# Data Agent
+# Oracle
 
 A simple, but powerful coding agent. Utilizes tools and write code to answer user queries. 
 
